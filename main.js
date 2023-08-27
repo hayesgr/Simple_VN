@@ -1,136 +1,61 @@
- var GM = 0;
-class scene{
-	constructor(){
-		this.parent=parent;
-		this.background=null;
-		this.id;
-		this.rgba=[];
-		this.name='';
-		this.dialog='';
-		this.responses=[];
-		this.buttons=[];
-	}
-	display(){
-		var html =""
+function display_title(){
+	var s = story_json.Story;
+	var html = '';
+	if (s.title_image!==''){
 		html += '<div class="content, img">';
-		html += '<img class="center-fit" src="' + this.background + '">';
+		html += '<img class="center-fit" src="' + s.title_image +'">';
 		html += '</div><!--content-->';
-		html += '<div id="dialog" class="dialog">';
-		html += '<div class="name"><h2>' + this.name + '</h2></div><!--name-->';
-		html += '<div class="dialogtext">' + this.dialog +'</div>';
-		if(Array.isArray(this.responses) && this.responses.length){
-			for(let i=0;i<this.responses.length;i++){
-				html += '<div class="response"><div class="resbut"><button class="reply" onclick="gotoScene(' + this.responses[i][1] + ')">select</button></div><div class="restext">' + this.responses[i][0] +'</div></div>';
-			}
-		}
-		if(Array.isArray(this.buttons) && this.buttons.length){
-			for(let i=0;i<this.buttons.length;i++){
-				if(this.buttons[i].hasOwnProperty("next")){html += '<button class="next" onclick="gotoScene(' + this.buttons[i].next + ')">next</button>';}
-				if(this.buttons[i].hasOwnProperty("replay")){
-					html += '<div class="rq">';
-					html += '<button class="replay" onclick="gotoScene(0)">replay</button>';
-					html += '<button class="quit" onclick="window.close()">quit</button>';
-					html += '</div><!--rq-->';
-				}
-				//if(this.buttons[i].hasOwnProperty("quit")){html += '<button class="quit" onclick="window.close()">quit</button>';}
-			}
-		}
-		html += '</div><!--dialog-->';
-		document.getElementById("mainbody").innerHTML = html;
-		document.getElementById("dialog").style.backgroundColor = "rgba(" + this.rgba[0]+","+ this.rgba[1]+","+ this.rgba[2]+","+ this.rgba[3] + ")";
 	}
+	else{
+		html += '<div class="content, title-page">';
+		html += '<div class="title">';
+		html += '<h1>' + s.title + '</h1>';
+		html += '<h3>by</h3>';
+		html += '<h2>' + s.author + '</h2>';
+		html += '</div><!--title-->';
+		html += '</div><!--content-->';
+	}
+	document.getElementById("mainbody").innerHTML = html;
 }
 
-class story{
-	constructor(){
-		this.Scenes=[];	//Array of scenes
-		this.C_Scene=0;	//Current Scenes
-		this.title='';
-		this.author='';
-		this.title_image;
-		this.obj = story_json;
-	}
-	displaytitle(){
-		var html = '';
-		if (this.title_image!==''){
-			html += '<div class="content, img">';
-			html += '<img class="center-fit" src="' + this.title_image +'">';
-			html += '</div><!--content-->';
-		}
-		else{
-			html += '<div class="content, title-page">';
-			html += '<div class="title">';
-			html += '<h1>' + this.title + '</h1>';
-			html += '<h3>by</h3>';
-			html += '<h2>' + this.author + '</h2>';
-			html += '</div><!--title-->';
-			html += '</div><!--content-->';
-			}
-		document.getElementById("mainbody").innerHTML = html;
-	}
-	build(){
-		this.title = this.obj.Story.title;
-		this.author = this.obj.Story.author;
-		this.title_image = this.obj.Story.title_image;
-		const sc = this.obj.Scenes;
-		this.Scenes = new Array(sc.length);
-		this.displaytitle();
-		
-		for(let i=0;i<sc.length;i++){
-			const temp = new scene(this);
-			temp.background = sc[i].background;
-			temp.id = sc[i].id;
-			temp.rgba = sc[i].RGBA;
-			temp.name = sc[i].name;
-			temp.dialog = sc[i].dialog;
-			if(sc[i].hasOwnProperty("responses")){
-				temp.responses = new Array(sc[i].responses.length);
-				for(let c=0;c<sc[i].responses.length;c++){
-					var n = [sc[i].responses[c].reply,sc[i].responses[c].go];
-					temp.responses[c]=n;
-				}
-			}
-			if(sc[i].hasOwnProperty("buttons")){
-				temp.buttons = new Array(sc[i].buttons.length);
-				for(let c=0;c<sc[i].buttons.length;c++){
-					var n = sc[i].buttons[c];
-					temp.buttons[c]=n;
-				}
-			}
-			this.Scenes[i] = temp;
+function display_scene(scene_id){
+	var s = story_json.Scenes[scene_id];
+	var html =""
+	html += '<div class="content, img">';
+	html += '<img class="center-fit" src="' + s.background + '">';
+	html += '</div><!--content-->';
+	html += '<div id="dialog" class="dialog">';
+	html += '<div class="name"><h2>' + s.name + '</h2></div><!--name-->';
+	html += '<div class="dialogtext">' + s.dialog +'</div>';
+	if(Array.isArray(s.responses) && s.responses.length){
+		for(let i=0;i<s.responses.length;i++){
+			html += '<div class="response"><div class="resbut"><button class="reply" onclick="display_scene(' + s.responses[i].go + ')">select</button></div><div class="restext">' + s.responses[i].reply +'</div></div>';
 		}
 	}
-}
-
-
-class game{
-	constructor(){
-		this.running=true;
-		this.st = new story();
-		
-		if(init(this)==false){this.running=false;return -1;}
-		
-		setTimeout(()=>{this.display_scene(0)}, 2000);
+	if(Array.isArray(s.buttons) && s.buttons.length){
+		for(let i=0;i<s.buttons.length;i++){
+			if(s.buttons[i].hasOwnProperty("next")){html += '<button class="next" onclick="display_scene(' + s.buttons[i].next + ')">next</button>';}
+			if(s.buttons[i].hasOwnProperty("replay")){
+				html += '<div class="rq">';
+				html += '<button class="replay" onclick="display_scene(0)">replay</button>';
+				html += '<button class="quit" onclick="window.close()">quit</button>';
+				html += '</div><!--rq-->';
+			}
+			//if(this.buttons[i].hasOwnProperty("quit")){html += '<button class="quit" onclick="window.close()">quit</button>';}
+		}
 	}
-	display_scene(id){
-		this.st.Scenes[id].display();
-	}
-	
-}
-
-function init(GM){
-	GM.st.build();
-	return true;
-}
-
-function gotoScene(n){
-	GM.st.Scenes[n].display();
+	html += '</div><!--dialog-->';
+	document.getElementById("mainbody").innerHTML = html;
+	document.getElementById("dialog").style.backgroundColor = "rgba(" + s.RGBA[0]+","+ s.RGBA[1]+","+ s.RGBA[2]+","+ s.RGBA[3] + ")";
 }
 
 function main(){
 	setTimeout(function(){
-		GM = new game();
+		display_title();
 	}, 1000);
+	setTimeout(function(){
+		display_scene(0);
+	}, 2000);
 }
 
 window.onload = main();
@@ -141,7 +66,6 @@ window.addEventListener("keyup", (e) =>{
 		d.style.display = d.style.display == "none" ? "block" : "none";
 	}
 });
-
 
 let story_json = {
 	"Story": {
